@@ -1,21 +1,72 @@
 <?php
 session_start();
-if(!isset($_SESSION['role'])) {
+if(!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
     header("Location: login.php");
     exit;
 }
 
+require_once 'koneksi.php';
 $role = $_SESSION['role'];
 $username = $_SESSION['username'];
+
+// Handle actions
+if(isset($_GET['action'])) {
+    $action = $_GET['action'];
+    $id = isset($_GET['id']) ? $_GET['id'] : null;
+    
+    switch($action) {
+        case 'delete':
+            if($id) {
+                $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
+                $stmt->execute([$id]);
+                $_SESSION['message'] = "User berhasil dihapus";
+                $_SESSION['message_type'] = "success";
+            }
+            break;
+            
+        case 'toggle_role':
+            if($id) {
+                // Get current role
+                $stmt = $pdo->prepare("SELECT role FROM users WHERE id = ?");
+                $stmt->execute([$id]);
+                $user = $stmt->fetch();
+                
+                if($user) {
+                    $new_role = ($user['role'] == 'admin') ? 'user' : 'admin';
+                    $stmt = $pdo->prepare("UPDATE users SET role = ? WHERE id = ?");
+                    $stmt->execute([$new_role, $id]);
+                    $_SESSION['message'] = "Role user berhasil diubah menjadi " . $new_role;
+                    $_SESSION['message_type'] = "success";
+                }
+            }
+            break;
+    }
+    
+    header("Location: users.php");
+    exit;
+}
+
+// Get user data for editing if edit_id is set
+$edit_user = null;
+if(isset($_GET['edit_id'])) {
+    $edit_id = $_GET['edit_id'];
+    $stmt = $pdo->prepare("SELECT id, username, role FROM users WHERE id = ?");
+    $stmt->execute([$edit_id]);
+    $edit_user = $stmt->fetch();
+}
+
+// Get all users
+$stmt = $pdo->query("SELECT id, username, password, role FROM users ORDER BY id ASC");
+$users = $stmt->fetchAll();
 ?>
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Halaman Belum Tersedia - Perpustakaan Digital</title>
+    <title>Kelola User - Perpustakaan Digital</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* CSS dari dashboard dengan beberapa penyesuaian */
         * {
             margin: 0;
             padding: 0;
@@ -38,6 +89,13 @@ $username = $_SESSION['username'];
             padding: 20px 60px;
             background-color: #2c3e59;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            /* Ubah dari 'sticky' biasa */
+            top: 0;
+            /* Penting: beri nilai top 0 */
+            z-index: 1000;
+            /* Pastikan header di atas konten lain */
+            width: 100%;
         }
 
         .logo {
@@ -110,73 +168,261 @@ $username = $_SESSION['username'];
             background-color: #c0392b;
         }
 
-        /* Konten khusus untuk halaman ini */
-        .content-container {
+        /* Main Content */
+        .main-content {
             flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 40px 20px;
-            text-align: center;
+            padding: 30px 60px;
         }
 
-        .error-icon {
-            font-size: 100px;
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 30px;
         }
 
-        .error-title {
-            font-size: 36px;
-            margin-bottom: 20px;
+        .page-title {
+            font-size: 28px;
             color: #f1c40f;
         }
 
-        .error-message {
-            font-size: 18px;
-            max-width: 600px;
-            margin-bottom: 30px;
-            line-height: 1.6;
+        .btn-add {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: background-color 0.3s ease;
         }
 
+        .btn-add:hover {
+            background: #219a52;
+        }
+
+        /* Table Styles */
+        .table-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .users-table th,
+        .users-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .users-table th {
+            background: rgba(255, 255, 255, 0.2);
+            font-weight: 600;
+        }
+
+        .users-table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Role Badges */
+        .role-badge {
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        .role-admin {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .role-user {
+            background: #3498db;
+            color: white;
+        }
+
+        /* Action Buttons */
         .action-buttons {
             display: flex;
-            gap: 15px;
+            gap: 8px;
+        }
+
+        .btn-action {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .btn-edit {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: #d68910;
+        }
+
+        .btn-delete {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #c0392b;
+        }
+
+        .btn-role {
+            background: #9b59b6;
+            color: white;
+        }
+
+        .btn-role:hover {
+            background: #8e44ad;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: #2c3e59;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            color: #f1c40f;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 14px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #f1c40f;
+        }
+
+        .password-note {
+            font-size: 12px;
+            color: #f1c40f;
+            margin-top: 5px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
             margin-top: 20px;
         }
 
-        .btn-primary {
-            background: orange;
+        .btn-cancel {
+            background: #95a5a6;
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
+            padding: 10px 20px;
+            border-radius: 5px;
             cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
         }
 
-        .btn-primary:hover {
-            background: #e69500;
+        .btn-cancel:hover {
+            background: #7f8c8d;
         }
 
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.1);
+        .btn-submit {
+            background: #27ae60;
             color: white;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            padding: 12px 24px;
-            border-radius: 6px;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
             cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
         }
 
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.2);
+        .btn-submit:hover {
+            background: #219a52;
+        }
+
+        /* Message Styles */
+        .message {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            font-weight: 600;
+        }
+
+        .message.success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .message.error {
+            background: #e74c3c;
+            color: white;
         }
 
         /* Footer */
@@ -261,7 +507,7 @@ $username = $_SESSION['username'];
                 gap: 15px;
             }
             
-            .content-container {
+            .main-content {
                 padding: 20px;
             }
             
@@ -270,10 +516,18 @@ $username = $_SESSION['username'];
                 gap: 10px;
             }
             
+            .page-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+            
+            .users-table {
+                font-size: 14px;
+            }
+            
             .action-buttons {
                 flex-direction: column;
-                width: 100%;
-                max-width: 300px;
             }
             
             footer {
@@ -286,19 +540,16 @@ $username = $_SESSION['username'];
     <header>
         <div class="logo">
             <img src="gambar/perpus.png" alt="Logo">
-            
             <div>
                 <div class="title">Perpustakaan Digital</div>
-                <div class="subtitle">Halaman Belum Tersedia</div>
+                <div class="subtitle">Kelola Pengguna</div>
             </div>
         </div>
         <nav>
             <a href="index.php">Home</a>
             <a href="buku.php">Katalog Buku</a>
-            <?php if($role == 'admin'): ?>
-                <a href="manage-books.php">Kelola Buku</a>
-                <a href="users.php">Kelola User</a>
-            <?php endif; ?>
+            <a href="manage-books.php">Kelola Buku</a>
+            <a href="users.php" style="color: #f1c40f;">Kelola User</a>
             <div class="user-info">
                 <span>Halo, <?= htmlspecialchars($username) ?></span>
                 <span class="user-role"><?= ucfirst($role) ?></span>
@@ -307,17 +558,134 @@ $username = $_SESSION['username'];
         </nav>
     </header>
 
-    <div class="content-container">
-        <div class="error-icon">🚧</div>
-        <h1 class="error-title">Maaf, Halaman Ini Belum Tersedia</h1>
-        <p class="error-message">
-            Halaman yang Anda coba akses sedang dalam tahap pengembangan. 
-            Tim developer kami sedang bekerja keras untuk menyelesaikan fitur ini 
-            secepat mungkin. Terima kasih atas pengertian Anda.
-        </p>
-        
-        <div class="action-buttons">
-            <a href="dashboard.php" class="btn-primary">Kembali ke Dashboard</a>
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">Kelola Data Pengguna</h1>
+            <button class="btn-add" onclick="openModal('add')">
+                <span>+</span> Tambah User Baru
+            </button>
+        </div>
+
+        <?php if(isset($_SESSION['message'])): ?>
+            <div class="message <?= $_SESSION['message_type'] ?>">
+                <?= $_SESSION['message'] ?>
+            </div>
+            <?php unset($_SESSION['message']); unset($_SESSION['message_type']); ?>
+        <?php endif; ?>
+
+        <div class="table-container">
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if(empty($users)): ?>
+                        <tr>
+                            <td colspan="4" style="text-align: center;">Tidak ada data user</td>
+                        </tr>
+                    <?php else: ?>
+                        <?php foreach($users as $user): ?>
+                        <tr>
+                            <td><?= $user['id'] ?></td>
+                            <td><?= htmlspecialchars($user['username']) ?></td>
+                            <td>
+                                <span class="role-badge role-<?= $user['role'] ?>">
+                                    <?= ucfirst($user['role']) ?>
+                                </span>
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="users.php?edit_id=<?= $user['id'] ?>" 
+                                       class="btn-action btn-edit">
+                                        Edit
+                                    </a>
+                                    <a href="users.php?action=toggle_role&id=<?= $user['id'] ?>" 
+                                       class="btn-action btn-role"
+                                       onclick="return confirm('Yakin ingin mengubah role user ini?')">
+                                        Ubah Role
+                                    </a>
+                                    <a href="users.php?action=delete&id=<?= $user['id'] ?>" 
+                                       class="btn-action btn-delete"
+                                       onclick="return confirm('Yakin ingin menghapus user ini?')">
+                                        Hapus
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal untuk Tambah User -->
+    <div id="addUserModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Tambah User Baru</h3>
+                <span class="close" onclick="closeModal('add')">&times;</span>
+            </div>
+            <form action="add_user.php" method="POST">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <div class="form-group">
+                    <label for="role">Role</label>
+                    <select id="role" name="role" required>
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal('add')">Batal</button>
+                    <button type="submit" class="btn-submit">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal untuk Edit User -->
+    <div id="editUserModal" class="modal" <?= $edit_user ? 'style="display: block;"' : '' ?>>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit User</h3>
+                <span class="close" onclick="closeModal('edit')">&times;</span>
+            </div>
+            <form action="update_user.php" method="POST">
+                <input type="hidden" name="id" value="<?= $edit_user ? $edit_user['id'] : '' ?>">
+                <div class="form-group">
+                    <label for="edit_username">Username</label>
+                    <input type="text" id="edit_username" name="username" 
+                           value="<?= $edit_user ? htmlspecialchars($edit_user['username']) : '' ?>" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit_password">Password</label>
+                    <input type="password" id="edit_password" name="password">
+                    <div class="password-note">Kosongkan jika tidak ingin mengubah password</div>
+                </div>
+                <div class="form-group">
+                    <label for="edit_role">Role</label>
+                    <select id="edit_role" name="role" required>
+                        <option value="user" <?= $edit_user && $edit_user['role'] == 'user' ? 'selected' : '' ?>>User</option>
+                        <option value="admin" <?= $edit_user && $edit_user['role'] == 'admin' ? 'selected' : '' ?>>Admin</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal('edit')">Batal</button>
+                    <button type="submit" class="btn-submit">Update</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -349,5 +717,40 @@ $username = $_SESSION['username'];
             <a href="#top" class="scroll-top">↑ Kembali ke Atas</a>
         </div>
     </footer>
+
+    <script>
+        // Modal functions
+        function openModal(type) {
+            document.getElementById(type + 'UserModal').style.display = 'block';
+        }
+
+        function closeModal(type) {
+            document.getElementById(type + 'UserModal').style.display = 'none';
+            // Redirect to users.php without edit_id parameter when closing edit modal
+            if(type === 'edit') {
+                window.location.href = 'users.php';
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const addModal = document.getElementById('addUserModal');
+            const editModal = document.getElementById('editUserModal');
+            
+            if (event.target == addModal) {
+                closeModal('add');
+            }
+            if (event.target == editModal) {
+                closeModal('edit');
+            }
+        }
+
+        // Auto open edit modal if edit_id is set
+        <?php if($edit_user): ?>
+        document.addEventListener('DOMContentLoaded', function() {
+            openModal('edit');
+        });
+        <?php endif; ?>
+    </script>
 </body>
 </html>

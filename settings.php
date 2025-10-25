@@ -1,6 +1,6 @@
 <?php
 session_start();
-if(!isset($_SESSION['role'])) {
+if (!isset($_SESSION['role'])) {
     header("Location: login.php");
     exit;
 }
@@ -10,6 +10,7 @@ $username = $_SESSION['username'];
 ?>
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <title>Halaman Belum Tersedia - Perpustakaan Digital</title>
@@ -35,9 +36,13 @@ $username = $_SESSION['username'];
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px 60px;
+            padding: 15px 60px;
             background-color: #2c3e59;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            width: 100%;
         }
 
         .logo {
@@ -260,33 +265,34 @@ $username = $_SESSION['username'];
                 flex-direction: column;
                 gap: 15px;
             }
-            
+
             .content-container {
                 padding: 20px;
             }
-            
+
             .user-info {
                 flex-direction: column;
                 gap: 10px;
             }
-            
+
             .action-buttons {
                 flex-direction: column;
                 width: 100%;
                 max-width: 300px;
             }
-            
+
             footer {
                 padding: 30px 20px 15px 20px;
             }
         }
     </style>
 </head>
+
 <body>
     <header>
         <div class="logo">
             <img src="gambar/perpus.png" alt="Logo">
-            
+
             <div>
                 <div class="title">Perpustakaan Digital</div>
                 <div class="subtitle">Halaman Belum Tersedia</div>
@@ -295,7 +301,7 @@ $username = $_SESSION['username'];
         <nav>
             <a href="index.php">Home</a>
             <a href="buku.php">Katalog Buku</a>
-            <?php if($role == 'admin'): ?>
+            <?php if ($role == 'admin'): ?>
                 <a href="manage-books.php">Kelola Buku</a>
                 <a href="users.php">Kelola User</a>
             <?php endif; ?>
@@ -311,11 +317,11 @@ $username = $_SESSION['username'];
         <div class="error-icon">🚧</div>
         <h1 class="error-title">Maaf, Halaman Ini Belum Tersedia</h1>
         <p class="error-message">
-            Halaman yang Anda coba akses sedang dalam tahap pengembangan. 
-            Tim developer kami sedang bekerja keras untuk menyelesaikan fitur ini 
+            Halaman yang Anda coba akses sedang dalam tahap pengembangan.
+            Tim developer kami sedang bekerja keras untuk menyelesaikan fitur ini
             secepat mungkin. Terima kasih atas pengertian Anda.
         </p>
-        
+
         <div class="action-buttons">
             <a href="dashboard.php" class="btn-primary">Kembali ke Dashboard</a>
         </div>
@@ -350,4 +356,5 @@ $username = $_SESSION['username'];
         </div>
     </footer>
 </body>
+
 </html>

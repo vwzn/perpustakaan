@@ -1,6 +1,6 @@
 <?php
 session_start();
-if(!isset($_SESSION['role'])) {
+if (!isset($_SESSION['role'])) {
     header("Location: login.php");
     exit;
 }
@@ -13,42 +13,43 @@ $user_id = $_SESSION['user_id']; // Pastikan user_id disimpan di session saat lo
 require_once 'koneksi.php'; // Sesuaikan dengan file koneksi Anda
 
 // Fungsi untuk mendapatkan statistik
-function getStatistics($role, $user_id, $conn) {
+function getStatistics($role, $user_id, $conn)
+{
     $stats = [];
-    
-    if($role == 'admin') {
+
+    if ($role == 'admin') {
         // Total Buku
         $query = "SELECT COUNT(*) as total FROM buku";
         $result = mysqli_query($conn, $query);
         $stats['total_buku'] = mysqli_fetch_assoc($result)['total'];
-        
+
         // Total Pengguna
         $query = "SELECT COUNT(*) as total FROM users WHERE role = 'user'";
         $result = mysqli_query($conn, $query);
         $stats['total_users'] = mysqli_fetch_assoc($result)['total'];
-        
+
         // Peminjaman Aktif
         $query = "SELECT COUNT(*) as total FROM pinjam WHERE status = 'dipinjam'";
         $result = mysqli_query($conn, $query);
         $stats['peminjaman_aktif'] = mysqli_fetch_assoc($result)['total'];
-        
+
         // Rating Sistem (rata-rata)
         // $query = "SELECT AVG(rating) as rata_rata FROM reviews";
         // $result = mysqli_query($conn, $query);
         // $rating = mysqli_fetch_assoc($result)['rata_rata'];
         // $stats['rating_sistem'] = $rating ? round($rating, 1) : 0;
-        
+
     } else {
         // Buku Dipinjam User
         $query = "SELECT COUNT(*) as total FROM pinjam WHERE user_id = '$user_id' AND status = 'dipinjam'";
         $result = mysqli_query($conn, $query);
         $stats['buku_dipinjam'] = mysqli_fetch_assoc($result)['total'];
-        
+
         // Buku Favorit User
         // $query = "SELECT COUNT(*) as total FROM favorites WHERE user_id = '$user_id'";
         // $result = mysqli_query($conn, $query);
         // $stats['buku_favorit'] = mysqli_fetch_assoc($result)['total'];
-        
+
         // Buku Harus Dikembalikan (yang mendekati tanggal kembali)
         $today = date('Y-m-d');
         $query = "SELECT COUNT(*) as total FROM pinjam 
@@ -57,7 +58,7 @@ function getStatistics($role, $user_id, $conn) {
                  AND tanggal_kembali <= DATE_ADD('$today', INTERVAL 3 DAY)";
         $result = mysqli_query($conn, $query);
         $stats['harus_dikembalikan'] = mysqli_fetch_assoc($result)['total'];
-        
+
         // Total Buku Dibaca
         $query = "SELECT COUNT(*) as total FROM pinjam 
                  WHERE user_id = '$user_id' 
@@ -65,7 +66,7 @@ function getStatistics($role, $user_id, $conn) {
         $result = mysqli_query($conn, $query);
         $stats['total_dibaca'] = mysqli_fetch_assoc($result)['total'];
     }
-    
+
     return $stats;
 }
 
@@ -74,6 +75,7 @@ $statistics = getStatistics($role, $user_id, $conn);
 ?>
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <title>Dashboard - Perpustakaan Digital</title>
@@ -102,6 +104,13 @@ $statistics = getStatistics($role, $user_id, $conn);
             padding: 20px 60px;
             background-color: #2c3e59;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            /* Ubah dari 'sticky' biasa */
+            top: 0;
+            /* Penting: beri nilai top 0 */
+            z-index: 1000;
+            /* Pastikan header di atas konten lain */
+            width: 100%;
         }
 
         .logo {
@@ -377,27 +386,28 @@ $statistics = getStatistics($role, $user_id, $conn);
                 flex-direction: column;
                 gap: 15px;
             }
-            
+
             .dashboard-container {
                 padding: 20px;
             }
-            
+
             .user-info {
                 flex-direction: column;
                 gap: 10px;
             }
-            
+
             footer {
                 padding: 30px 20px 15px 20px;
             }
         }
     </style>
 </head>
+
 <body>
     <header>
         <div class="logo">
             <img src="gambar/perpus.png" alt="Logo">
-            
+
             <div>
                 <div class="title">Perpustakaan Digital</div>
                 <div class="subtitle">Dashboard</div>
@@ -406,7 +416,7 @@ $statistics = getStatistics($role, $user_id, $conn);
         <nav>
             <a href="index.php">Home</a>
             <a href="buku.php">Katalog Buku</a>
-            <?php if($role == 'admin'): ?>
+            <?php if ($role == 'admin'): ?>
                 <a href="manage-books.php">Kelola Buku</a>
                 <a href="users.php">Kelola User</a>
             <?php endif; ?>
@@ -425,7 +435,7 @@ $statistics = getStatistics($role, $user_id, $conn);
         </div>
 
         <div class="stats-grid">
-            <?php if($role == 'admin'): ?>
+            <?php if ($role == 'admin'): ?>
                 <div class="stat-card admin">
                     <div class="stat-icon">📚</div>
                     <div class="stat-number"><?= $statistics['total_buku'] ?></div>
@@ -471,10 +481,10 @@ $statistics = getStatistics($role, $user_id, $conn);
         </div>
 
         <div class="actions-grid">
-            <?php if($role == 'admin'): ?>
+            <?php if ($role == 'admin'): ?>
                 <div class="action-card" onclick="location.href='buku.php'">
                     <h3>📋 Kelola Buku</h3>
-                    <p>Tambah, edit, atau hapus buku dari katalog perpustakaan</p> 
+                    <p>Tambah, edit, atau hapus buku dari katalog perpustakaan</p>
                     <button class="btn-action">Kelola</button>
                 </div>
                 <div class="action-card" onclick="location.href='users.php'">
@@ -546,4 +556,5 @@ $statistics = getStatistics($role, $user_id, $conn);
         </div>
     </footer>
 </body>
+
 </html>

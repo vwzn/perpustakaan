@@ -79,6 +79,7 @@ $total_pages   = ceil($total_buku / $limit);
 ?>
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <title>Katalog Buku</title>
@@ -90,13 +91,19 @@ $total_pages   = ceil($total_buku / $limit);
             font-family: 'Poppins', sans-serif;
             color: #2c3e50;
         }
+
         header {
-            background-color: #2c3e50;
-            color: white;
-            padding: 20px 40px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 15px 60px;
+            background-color: #2c3e59;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            width: 100%;
+            color:white;
         }
 
         .logo {
@@ -141,12 +148,15 @@ $total_pages   = ceil($total_buku / $limit);
         }
 
         nav a.active {
-            background-color: rgba(255,255,255,0.2);
+            background-color: rgba(255, 255, 255, 0.2);
             padding: 6px 12px;
             border-radius: 5px;
         }
 
-        .dropdown { position: relative; }
+        .dropdown {
+            position: relative;
+        }
+
         .dropdown-content {
             display: none;
             position: absolute;
@@ -156,8 +166,9 @@ $total_pages   = ceil($total_buku / $limit);
             border-radius: 5px;
             top: 35px;
             z-index: 1000;
-            box-shadow: 0px 2px 6px rgba(0,0,0,0.2);
+            box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.2);
         }
+
         .dropdown-content a {
             display: block;
             padding: 10px;
@@ -165,22 +176,28 @@ $total_pages   = ceil($total_buku / $limit);
             text-decoration: none;
             font-size: 14px;
         }
+
         .dropdown-content a.active {
             font-weight: bold;
             background-color: #f0f0f0;
         }
-        .dropdown:hover .dropdown-content { display: block; }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
 
         .container {
             max-width: 1200px;
             margin: auto;
             padding: 40px 20px;
         }
+
         .search-box {
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
         }
+
         .search-box input,
         .search-box select {
             padding: 10px;
@@ -191,6 +208,7 @@ $total_pages   = ceil($total_buku / $limit);
             background-color: white;
             color: #2c3e50;
         }
+
         .search-box button {
             padding: 10px 20px;
             background-color: orange;
@@ -202,23 +220,27 @@ $total_pages   = ceil($total_buku / $limit);
 
         .book-grid {
             display: grid;
-            grid-template-columns: repeat(5, 1fr); /* 5 kolom */
+            grid-template-columns: repeat(5, 1fr);
+            /* 5 kolom */
             gap: 20px;
             margin-top: 20px;
         }
+
         .book-card {
             width: 100%;
             aspect-ratio: 3 / 4;
             overflow: hidden;
             border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             cursor: pointer;
             transition: transform 0.3s ease;
         }
+
         .book-card:hover {
             transform: scale(1.05);
-            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
         }
+
         .book-card img {
             width: 100%;
             height: 100%;
@@ -231,6 +253,7 @@ $total_pages   = ceil($total_buku / $limit);
             margin-top: 30px;
             text-align: center;
         }
+
         .pagination a {
             display: inline-block;
             padding: 8px 14px;
@@ -241,14 +264,17 @@ $total_pages   = ceil($total_buku / $limit);
             border-radius: 5px;
             font-size: 14px;
         }
+
         .pagination a.active {
             background: orange;
             font-weight: bold;
         }
+
         .pagination a:hover {
             background: #34495e;
         }
-            /* Footer */
+
+        /* Footer */
         footer {
             background-color: #2c3e59;
             color: white;
@@ -323,8 +349,9 @@ $total_pages   = ceil($total_buku / $limit);
         }
     </style>
 </head>
+
 <body>
-<header>
+    <header>
         <div class="logo">
             <img src="gambar/perpus.png" alt="Logo">
             <div>
@@ -342,51 +369,51 @@ $total_pages   = ceil($total_buku / $limit);
         </nav>
     </header>
 
-<div class="container">
-    <form action="buku.php" method="GET" class="search-box">
-        <input type="text" name="search" placeholder="Cari buku disini" value="<?= htmlspecialchars($search) ?>">
-        <select name="kategori">
-            <option value="">Semua Kategori</option>
-            <?php foreach ($kategori_list as $id => $nama): ?>
-                <option value="<?= $id ?>" <?= $kategori == $id ? "selected" : "" ?>><?= $nama ?></option>
-            <?php endforeach; ?>
-        </select>
-        <button type="submit">Cari</button>
-    </form>
+    <div class="container">
+        <form action="buku.php" method="GET" class="search-box">
+            <input type="text" name="search" placeholder="Cari buku disini" value="<?= htmlspecialchars($search) ?>">
+            <select name="kategori">
+                <option value="">Semua Kategori</option>
+                <?php foreach ($kategori_list as $id => $nama): ?>
+                    <option value="<?= $id ?>" <?= $kategori == $id ? "selected" : "" ?>><?= $nama ?></option>
+                <?php endforeach; ?>
+            </select>
+            <button type="submit">Cari</button>
+        </form>
 
-    <h2><?= $kategori_nama ?></h2>
-    <p>Menampilkan <strong><?= $total_buku ?></strong> buku</p>
+        <h2><?= $kategori_nama ?></h2>
+        <p>Menampilkan <strong><?= $total_buku ?></strong> buku</p>
 
-    <div class="book-grid">
-    <?php while ($row = $result->fetch_assoc()): ?>
-        <a href="buku1.php?id=<?= $row['id'] ?>" class="book-card" title="<?= htmlspecialchars($row['judul']) ?>">
-            <img src="buku/<?= htmlspecialchars($row['gambar']) ?>"
-                 onerror="this.src='buku/default.jpg'" 
-                 alt="<?= htmlspecialchars($row['judul']) ?>">
-        </a>
-    <?php endwhile; ?>
+        <div class="book-grid">
+            <?php while ($row = $result->fetch_assoc()): ?>
+                <a href="buku1.php?id=<?= $row['id'] ?>" class="book-card" title="<?= htmlspecialchars($row['judul']) ?>">
+                    <img src="buku/<?= htmlspecialchars($row['gambar']) ?>"
+                        onerror="this.src='buku/default.jpg'"
+                        alt="<?= htmlspecialchars($row['judul']) ?>">
+                </a>
+            <?php endwhile; ?>
+        </div>
+
+        <!-- PAGINATION -->
+        <div class="pagination">
+            <?php if ($page > 1): ?>
+                <a href="?search=<?= urlencode($search) ?>&kategori=<?= $kategori ?>&page=1">« Pertama</a>
+                <a href="?search=<?= urlencode($search) ?>&kategori=<?= $kategori ?>&page=<?= $page - 1 ?>">‹ Prev</a>
+            <?php endif; ?>
+
+            <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                <a href="?search=<?= urlencode($search) ?>&kategori=<?= $kategori ?>&page=<?= $i ?>"
+                    class="<?= $i == $page ? 'active' : '' ?>"><?= $i ?></a>
+            <?php endfor; ?>
+
+            <?php if ($page < $total_pages): ?>
+                <a href="?search=<?= urlencode($search) ?>&kategori=<?= $kategori ?>&page=<?= $page + 1 ?>">Next ›</a>
+                <a href="?search=<?= urlencode($search) ?>&kategori=<?= $kategori ?>&page=<?= $total_pages ?>">Terakhir »</a>
+            <?php endif; ?>
+        </div>
     </div>
 
-    <!-- PAGINATION -->
-    <div class="pagination">
-        <?php if ($page > 1): ?>
-            <a href="?search=<?= urlencode($search) ?>&kategori=<?= $kategori ?>&page=1">« Pertama</a>
-            <a href="?search=<?= urlencode($search) ?>&kategori=<?= $kategori ?>&page=<?= $page-1 ?>">‹ Prev</a>
-        <?php endif; ?>
-
-        <?php for ($i = 1; $i <= $total_pages; $i++): ?>
-            <a href="?search=<?= urlencode($search) ?>&kategori=<?= $kategori ?>&page=<?= $i ?>" 
-               class="<?= $i == $page ? 'active' : '' ?>"><?= $i ?></a>
-        <?php endfor; ?>
-
-        <?php if ($page < $total_pages): ?>
-            <a href="?search=<?= urlencode($search) ?>&kategori=<?= $kategori ?>&page=<?= $page+1 ?>">Next ›</a>
-            <a href="?search=<?= urlencode($search) ?>&kategori=<?= $kategori ?>&page=<?= $total_pages ?>">Terakhir »</a>
-        <?php endif; ?>
-    </div>
-</div>
-
-<!-- Footer -->
+    <!-- Footer -->
     <footer>
         <div class="footer-container">
             <div class="footer-left">
@@ -416,4 +443,5 @@ $total_pages   = ceil($total_buku / $limit);
         </div>
     </footer>
 </body>
+
 </html>

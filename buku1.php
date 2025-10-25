@@ -47,7 +47,7 @@ $id = $_GET['id'];
     <title>Detail Buku - <?= htmlspecialchars($buku['judul']) ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
     <style>
-         .alert {
+        .alert {
             padding: 15px 20px;
             border-radius: 8px;
             margin: 20px 0;
@@ -55,19 +55,19 @@ $id = $_GET['id'];
             animation: fadeIn 0.5s;
             position: relative;
         }
-        
+
         .alert-success {
             background: #d4edda;
             color: #155724;
             border: 1px solid #c3e6cb;
         }
-        
+
         .alert-error {
             background: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
-        
+
         .close-alert {
             background: none;
             border: none;
@@ -78,11 +78,19 @@ $id = $_GET['id'];
             top: 50%;
             transform: translateY(-50%);
         }
-        
+
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+
         body {
             margin: 0;
             background-color: #f4f6f8;
@@ -91,12 +99,17 @@ $id = $_GET['id'];
         }
 
         header {
-            background-color: #2c3e50;
-            color: white;
-            padding: 20px 40px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 15px 60px;
+            background-color: #2c3e59;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            width: 100%;
+            color:white;
         }
 
         .logo {
@@ -269,20 +282,20 @@ $id = $_GET['id'];
 </head>
 
 <body>
-     <!-- Alert Success -->
+    <!-- Alert Success -->
     <?php if ($show_success): ?>
-    <div class="alert alert-success">
-        ✅ <?= htmlspecialchars($success_message) ?>
-        <button class="close-alert" onclick="this.parentElement.style.display='none'">×</button>
-    </div>
+        <div class="alert alert-success">
+            ✅ <?= htmlspecialchars($success_message) ?>
+            <button class="close-alert" onclick="this.parentElement.style.display='none'">×</button>
+        </div>
     <?php endif; ?>
 
     <!-- Alert Error -->
     <?php if ($show_error): ?>
-    <div class="alert alert-error">
-        ❌ <?= htmlspecialchars($error_message) ?>
-        <button class="close-alert" onclick="this.parentElement.style.display='none'">×</button>
-    </div>
+        <div class="alert alert-error">
+            ❌ <?= htmlspecialchars($error_message) ?>
+            <button class="close-alert" onclick="this.parentElement.style.display='none'">×</button>
+        </div>
     <?php endif; ?>
     <!-- Header -->
     <header>

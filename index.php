@@ -25,12 +25,16 @@
 
         /* Header */
         header {
-            background-color: #2c3e50;
-            color: white;
-            padding: 20px 40px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 15px 60px;
+            background-color: #2c3e59;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            width: 100%;
         }
 
         .logo {
@@ -344,7 +348,7 @@
                 <p class="title">Sistem Informasi</p>
                 <p class="subtitle">Perpustakaan Digital</p>
             </div>
-        </div>  
+        </div>
         <nav>
             <a href="index.php">Beranda</a>
             <div class="dropdown">
@@ -391,16 +395,16 @@
                 <?php
                 // Koneksi ke database
                 $host = "localhost";
-                $username = "root"; 
-                $password = ""; 
-                $database = "perpus"; 
-                
+                $username = "root";
+                $password = "";
+                $database = "perpus";
+
                 $conn = mysqli_connect($host, $username, $password, $database);
-                
+
                 if (!$conn) {
                     die("Koneksi gagal: " . mysqli_connect_error());
                 }
-                
+
                 // Query untuk mendapatkan 3 buku terpopuler berdasarkan jumlah peminjaman
                 $query = "
                     SELECT b.id, b.judul, b.pengarang, b.gambar, COUNT(p.buku_id) as jumlah_pinjam
@@ -410,9 +414,9 @@
                     ORDER BY jumlah_pinjam DESC
                     LIMIT 3
                 ";
-                
+
                 $result = mysqli_query($conn, $query);
-                
+
                 if (mysqli_num_rows($result) > 0) {
                     $counter = 1;
                     while ($row = mysqli_fetch_assoc($result)) {
@@ -450,7 +454,7 @@
                 } else {
                     echo "<p>Tidak ada data buku terpopuler.</p>";
                 }
-                
+
                 mysqli_close($conn);
                 ?>
             </div>
